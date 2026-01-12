@@ -260,6 +260,17 @@ pages_by_templates() {
 		while read -r t; do echo "$1" | grep "$t" | cut -f2; done
 }
 
+plan_sitemap() {
+	# if src_hash is empty do nothing
+	if test -z "$1"; then return; fi
+	# if sitemap.xml found in src do nothing
+	if test -f "$SRC/$SSG_SITEMAP_XML"; then return; fi
+	echo "$SSG_SITEMAP_XML"
+	# if robots.txt found in src do nothing
+	if test -f "$SRC/$SSG_ROBOTS_TXT"; then return; fi
+	echo "$SSG_ROBOTS_TXT"
+}
+
 # return file expected in dst directory
 plan() {
 	while read -r k f; do
@@ -275,6 +286,7 @@ plan() {
 		*) continue ;;
 		esac
 	done
+	plan_sitemap "$1"
 }
 
 # make dst directory and return src hash as is
@@ -317,7 +329,7 @@ select_right() { sed -n 's/^> \([^\	]*\).*/\1/p'; }
 
 # remove files and directories not present in plan from dst
 clean_up_dst() {
-	dst_plan=$(echo "$1" | cut_sort | prepend_kind | plan | sort)
+	dst_plan=$(echo "$1" | cut_sort | prepend_kind | plan "$1" | sort)
 	dst_files=$(echo "$2" | sort_relative "$DST" | cut_sort)
 	diff_lines "$dst_plan" "$dst_files" | select_right | files_in "$DST" |
 		rm_files
@@ -345,15 +357,59 @@ diff_src() { diff_lines "$(cat "$DST/$SSG_SRC")" "$1"; }
 
 # return files to be updated
 select_src_files() {
-	if is_empty "$1"; then return; fi
+	dst_hash=$(hash_dst)
+	if is_empty "$1"; then
+		clean_up_dst "$src_hash" "$dst_hash"
+		return
+	fi
 	if ! is_dir "$DST"; then mkdir_select_all "$1" && return; fi
 	if ! is_ssg_src || ! is_ssg_dst; then rmdir_select_all "$1" && return; fi
-	dst_hash=$(hash_dst)
 	if ! is_matching_ssg_dst "$dst_hash"; then rmdir_select_all "$1" && return; fi
 	src_hash_diff=$(diff_src "$1")
 	if is_empty "$src_hash_diff"; then return; fi
 	clean_up_dst "$src_hash" "$dst_hash"
 	select_updated "$src_hash" "$src_hash_diff"
+}
+
+# write sitemap to dst
+generate_sitemap() {
+	# if src_hash is empty do nothing
+	if test -z "$1"; then return; fi
+	# if sitemap.xml found in src do nothing
+	if test -f "$SRC/$SSG_SITEMAP_XML"; then return; fi
+	dst_pages=$(find "$DST" -type f -name '*.html' | sort_relative "$DST")
+	# if dst_pages is empty do nothing
+	if test -z "$dst_pages"; then return; fi
+	# if no pages added or removed do nothing
+	if test -f "$DST/.ssg.dst"; then
+		dst_pages_was=$(cut_sort <"$DST/.ssg.dst" | grep '.html$')
+		dst_pages_updated=$(diff_lines "$dst_pages_was" "$dst_pages")
+		if test -z "$dst_pages_updated"; then return; fi
+	fi
+	# generate sitemap.xml for all pages in dst
+	{
+		site=$(basename "$SRC")
+		echo '<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+	http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+	xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+		echo "$dst_pages" | sed -E '
+			s,^$,,
+			s,^'"$DST"',,
+			s,index.html$,,
+			s,^(.*)$,	<url><loc>https://'"$site"'/\1</loc></url>,'
+		echo '</urlset>'
+	} >"$DST/$SSG_SITEMAP_XML"
+	info "sitemap   $SSG_SITEMAP_XML"
+
+	# if robots.txt found in src do nothing
+	if test -f "$SRC/$SSG_ROBOTS_TXT"; then return; fi
+	# generate robots.txt in dst
+	echo 'user-agent: *
+sitemap: https://'"$site"'/sitemap.xml' >"$DST/$SSG_ROBOTS_TXT"
+	info "sitemap   $SSG_ROBOTS_TXT"
 }
 
 # write files in dst directory
@@ -370,6 +426,7 @@ generate() {
 		*) info "unknown   $f" ;;
 		esac
 	done
+	generate_sitemap "$1"
 }
 
 # write src and dst hash files to dst directory
@@ -389,10 +446,12 @@ main() {
 	SSG_TEMPLATE='.ssg.template'
 	SSG_SRC='.ssg.src'
 	SSG_DST='.ssg.dst'
+	SSG_SITEMAP_XML='sitemap.xml'
+	SSG_ROBOTS_TXT='robots.txt'
 	NCPU=$(sysctl -n hw.ncpu 2>/dev/null || getconf NPROCESSORS_ONLN)
 
 	src_hash=$(hash_src)
-	select_src_files "$src_hash" | prepend_kind | generate
+	select_src_files "$src_hash" | prepend_kind | generate "$src_hash"
 	write_hashes "$src_hash" "$(hash_dst)"
 }
 

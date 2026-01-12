@@ -1,7 +1,7 @@
 #!/bin/ksh -e
 
 ok_count=0
-ok_expected=24
+ok_expected=27
 
 plan() {
 	echo "$ok_expected..$ok_count"
@@ -83,7 +83,9 @@ file      main.css
 file      main.css > main.css.gz
 md        markdown.md, .ssg.template > markdown.html
 md        markdown.md, .ssg.template > markdown.html.gz
-56fd1f7d1f2bcbe8b452073cc657b27a4eee72cab0e531de679788e5744af652
+sitemap   sitemap.xml
+sitemap   robots.txt
+de31b4842cafa9761c3bb57c9d60b7651e93f9606dbb5a40f760caefda2f34ea
 '
 	rm -rf "$dir"
 }
@@ -253,8 +255,11 @@ html      html2.html > html2.html.gz
 md        markdown.md, .ssg.template > markdown.html
 md        markdown.md, .ssg.template > markdown.html.gz
 copy      t.png
-5538af7d3a6abc2aad8609b32f32154ea5d23109e2630399fecd0755ebde544f
+sitemap   sitemap.xml
+sitemap   robots.txt
+e58355d68978971708283c3099a1f15c2f4514964e1456af3a2c554db93af090
 '
+
 		expected_dst='
 .ssg.dst
 .ssg.src
@@ -264,6 +269,8 @@ html2.html
 html2.html.gz
 markdown.html
 markdown.html.gz
+robots.txt
+sitemap.xml
 t.png
 '
 		not_ok_find "$dst" "$1" "$expected_dst"
@@ -275,7 +282,7 @@ html      html1.html, .ssg.template > html1.html
 html      html1.html, .ssg.template > html1.html.gz
 md        markdown.md, .ssg.template > markdown.html
 md        markdown.md, .ssg.template > markdown.html.gz
-c3f5b69d372ad66211a052e7b572715941522aae7779eff22cf7becc1c8d18e8
+cc2f8fab08e743666d490c9379e8580981115d95c3b6492893a46b5cd30f5f3a
 '
 		not_ok_find "$dst" "$1" "$expected_dst"
 		;;
@@ -326,16 +333,20 @@ t.txt.gz
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: first run" '
 html      h.html
 html      h.html > h.html.gz
-d167244df661961bfe78dd5e1b2c8c563cd588f3583a6438f2af3207401fb10c
+sitemap   sitemap.xml
+sitemap   robots.txt
+c31554e49bd5671f634ec9392a21ded395383d00bf224088767fd2fc64a42486
 '
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: second run" '
-d167244df661961bfe78dd5e1b2c8c563cd588f3583a6438f2af3207401fb10c
+c31554e49bd5671f634ec9392a21ded395383d00bf224088767fd2fc64a42486
 '
 		not_ok_find "$dst" "$1" '
 .ssg.dst
 .ssg.src
 h.html
 h.html.gz
+robots.txt
+sitemap.xml
 '
 		cat "$dst/h.html" | not_ok_diff "$1" '<html>'
 		hexdump -C "$dst/h.html.gz" | not_ok_diff_n "$1" '
@@ -343,6 +354,70 @@ h.html.gz
 00000010  e3 02 00 99 34 cb 33 07  00 00 00                 |....4.3....|
 0000001b
 '
+		;;
+
+	generate_sitemap)
+		mkdir "$src" "$dst" && echo '<html>' >"$src/h.html"
+		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: first run" '
+html      h.html
+html      h.html > h.html.gz
+sitemap   sitemap.xml
+sitemap   robots.txt
+c31554e49bd5671f634ec9392a21ded395383d00bf224088767fd2fc64a42486
+'
+		cat "$dst/sitemap.xml" | not_ok_diff_n "$1" '
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+	http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
+	xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+	<url><loc>https://src/h.html</loc></url>
+</urlset>
+'
+		rm "$src/h.html"
+
+		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: second run" '
+rm        h.html
+rm        h.html.gz
+rm        robots.txt
+rm        sitemap.xml
+01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+'
+
+		not_ok_find "$dst" "$1" '
+.ssg.dst
+.ssg.src
+'
+		;;
+
+	generate_sitemap_xml_found_in_src)
+		mkdir "$src" "$dst"
+		echo '<html>' >"$src/h.html"
+		echo >"$src/sitemap.xml"
+		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: first run" '
+html      h.html
+html      h.html > h.html.gz
+file      sitemap.xml
+file      sitemap.xml > sitemap.xml.gz
+8ff598b31385c53268c54ff343e33ff60bbf0605d5efcd4f7c5f84a395eaaaa4
+'
+		cat "$dst/sitemap.xml" | not_ok_diff "$1" ''
+		;;
+
+	generate_sitemap_robots_txt_found_in_src)
+		mkdir "$src" "$dst"
+		echo '<html>' >"$src/h.html"
+		echo >"$src/robots.txt"
+		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: first run" '
+html      h.html
+html      h.html > h.html.gz
+file      robots.txt
+file      robots.txt > robots.txt.gz
+sitemap   sitemap.xml
+380bbf740dad47d4036e88e89a07b7a1d1f94657ca5bcf9e5f10f1feddd8c799
+'
+		cat "$dst/robots.txt" | not_ok_diff "$1" ''
 		;;
 
 	generate_html_with_template)
@@ -354,16 +429,20 @@ h.html.gz
 template  .ssg.template
 html      h.html, .ssg.template > h.html
 html      h.html, .ssg.template > h.html.gz
-7cbe380c112e232fa4b618b1837d11c47abdfd01863ae484fdb411ade0f43af1
+sitemap   sitemap.xml
+sitemap   robots.txt
+41ea28f2ec31b10d054cd52d4f5586974b37f2028b3841fa8bd4f1821d17d1fe
 '
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: second run" '
-7cbe380c112e232fa4b618b1837d11c47abdfd01863ae484fdb411ade0f43af1
+41ea28f2ec31b10d054cd52d4f5586974b37f2028b3841fa8bd4f1821d17d1fe
 '
 		not_ok_find "$dst" "$1" '
 .ssg.dst
 .ssg.src
 h.html
 h.html.gz
+robots.txt
+sitemap.xml
 '
 
 		cat "$dst/h.html" | not_ok_diff "$1" '<title>h1~src</title><h1>h1</h1>'
@@ -387,7 +466,9 @@ html      h.html, .ssg.template > h.html
 html      h.html, .ssg.template > h.html.gz
 html      p.html, .ssg.template > p.html
 html      p.html, .ssg.template > p.html.gz
-816fcd36b20ed6114d6e13c15182ae33186676aa091558dce61f66c8e43c8b62
+sitemap   sitemap.xml
+sitemap   robots.txt
+452338ffd109bbe64021f7722cce4beb854494f37298edd08da1b0e484d0e7dd
 '
 		not_ok_find "$dst" "$1" '
 .ssg.dst
@@ -396,12 +477,13 @@ h.html
 h.html.gz
 p.html
 p.html.gz
+robots.txt
+sitemap.xml
 '
 
 		cat "$dst/h.html" | not_ok_diff "$1" '<title>h1: src</title><h1>h1</h1>'
 		cat "$dst/p.html" | not_ok_diff "$1" '<title>src</title>p'
 		;;
-
 
 	generate_html_with_template_in_dir)
 		mkdir "$src" "$src/dir"
@@ -417,10 +499,12 @@ html      dir/h2.html, dir/.ssg.template > dir/h2.html
 html      dir/h2.html, dir/.ssg.template > dir/h2.html.gz
 html      h1.html, .ssg.template > h1.html
 html      h1.html, .ssg.template > h1.html.gz
-8602b68b3b149d967e43d9c4948099d4cbbc3edd2f0a5e46f01c37af78ba8506
+sitemap   sitemap.xml
+sitemap   robots.txt
+51147e86d5a634da68279934469c49305735a5a0516b0b6327fb00df86795832
 '
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: second run" '
-8602b68b3b149d967e43d9c4948099d4cbbc3edd2f0a5e46f01c37af78ba8506
+51147e86d5a634da68279934469c49305735a5a0516b0b6327fb00df86795832
 '
 		not_ok_find "$dst" "$1" '
 .ssg.dst
@@ -429,6 +513,8 @@ dir/h2.html
 dir/h2.html.gz
 h1.html
 h1.html.gz
+robots.txt
+sitemap.xml
 '
 
 		cat "$dst/h1.html" | not_ok_diff "$1" '/'
@@ -442,16 +528,20 @@ h1.html.gz
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: first run" '
 html      h.html
 html      h.html > h.html.gz
-255d20dac0c5587bd5499827d3528db1433d60c04168ca2d9b2427de0f9a440e
+sitemap   sitemap.xml
+sitemap   robots.txt
+52494b82f46c80147bde275b53bf7318998d6986eaf6e503d7fe3dadfdf67d19
 '
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: second run" '
-255d20dac0c5587bd5499827d3528db1433d60c04168ca2d9b2427de0f9a440e
+52494b82f46c80147bde275b53bf7318998d6986eaf6e503d7fe3dadfdf67d19
 '
 		not_ok_find "$dst" "$1" '
 .ssg.dst
 .ssg.src
 h.html
 h.html.gz
+robots.txt
+sitemap.xml
 '
 
 		cat "$dst/h.html" | not_ok_diff "$1" '<h1>h1</h1>'
@@ -483,16 +573,20 @@ fail: h.md collides with h.html
 template  .ssg.template
 md        h.md, .ssg.template > h.html
 md        h.md, .ssg.template > h.html.gz
-916917ec6944394281526a5ba9276e39bdff828105b965188c168c847065be63
+sitemap   sitemap.xml
+sitemap   robots.txt
+ea62f877148817dcb0bf8b1d76e691880cd58961f239f9e2e25f282c79da26e6
 '
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: second run" '
-916917ec6944394281526a5ba9276e39bdff828105b965188c168c847065be63
+ea62f877148817dcb0bf8b1d76e691880cd58961f239f9e2e25f282c79da26e6
 '
 		not_ok_find "$dst" "$1" '
 .ssg.dst
 .ssg.src
 h.html
 h.html.gz
+robots.txt
+sitemap.xml
 '
 
 		cat "$dst/h.html" |
@@ -513,16 +607,20 @@ h.html.gz
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: first run" '
 md        h.md > h.html
 md        h.md > h.html.gz
-2f33f1e74aa7d6f33502cc842f2001a7759da120f0fb0f84a6295c1fe81d0319
+sitemap   sitemap.xml
+sitemap   robots.txt
+541864f1b492230aa29853b08cf13533054817db9b19bc75ebd47201e04bd470
 '
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: second run" '
-2f33f1e74aa7d6f33502cc842f2001a7759da120f0fb0f84a6295c1fe81d0319
+541864f1b492230aa29853b08cf13533054817db9b19bc75ebd47201e04bd470
 '
 		not_ok_find "$dst" "$1" '
 .ssg.dst
 .ssg.src
 h.html
 h.html.gz
+robots.txt
+sitemap.xml
 '
 
 		cat "$dst/h.html" | not_ok_diff "$1" '<h1 id="h1">h1</h1>'
@@ -629,6 +727,9 @@ t generate_md_with_template
 t generate_md_template_not_found
 t generate_sh
 t generate_sh_with_collision
+t generate_sitemap
+t generate_sitemap_xml_found_in_src
+t generate_sitemap_robots_txt_found_in_src
 t write_hashes
 
 basic_case && bench 4 basic_case
