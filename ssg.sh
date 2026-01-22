@@ -1,4 +1,4 @@
-#!/bin/ksh -eu
+#!/bin/sh -eu
 
 # https://romanzolotarev.com/ssg/
 # copyright 2018-2026 romanzolotarev.com
