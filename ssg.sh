@@ -17,7 +17,7 @@
 
 info() { echo "$@" >&2; }
 fail() { echo "$@" >&2 && exit 1; }
-usage() { fail 'usage: '"${0##*/}"' <src> <dst>'; }
+usage() { fail "usage: ${0##*/} <src> <dst>"; }
 
 # exit if less than two arguments
 fail_no_args() { if test $# -ne 2; then usage; fi; }
