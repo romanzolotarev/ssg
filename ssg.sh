@@ -39,7 +39,7 @@ hash_dir() {
 			if test -z "$word"; then continue; fi && set -- "$@" "$word"
 		done && set +f
 	done
-	"$@" -print0 | xargs -r -0 -n256 -P "$NCPU" sha256 -r | sort_relative "$dir"
+	"$@" -print0 | xargs -r -0 -n256 sha256 -r | sort_relative "$dir"
 }
 
 # return find expression to exclude paths
@@ -448,7 +448,6 @@ main() {
 	SSG_DST='.ssg.dst'
 	SSG_SITEMAP_XML='sitemap.xml'
 	SSG_ROBOTS_TXT='robots.txt'
-	NCPU=$(sysctl -n hw.ncpu 2>/dev/null || getconf NPROCESSORS_ONLN)
 
 	src_hash=$(hash_src)
 	select_src_files "$src_hash" | prepend_kind | generate "$src_hash"
