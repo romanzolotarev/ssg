@@ -105,20 +105,18 @@ mustache() {
 
 # returns page rendered with its template
 render_page() {
-	# strip newlines and escape ampersands and slashes
-	esc() { tr -d '\n' | sed 's/[&/]/\\&/g'; }
 	# replace newlines with spaces and extract title from the first <h1> tag
 	get_title() { tr '\n' ' ' |
 		sed -n 's/^[^<]*<[Hh]1[^>]*>\([^<]*\)<\/[Hh]1[^>]*>.*/\1/p'; }
 	content="$(cat)"
-	# use src dir name as site name
-	site="$(basename "$SRC" | esc)"
-	title="$(printf '%s' "$content" | get_title | esc)"
+	# use src directory name as site name
+	title="$(printf '%s' "$content" | get_title | tr -d '\n')"
+	site="$SITE"
 	# replace {{title}} and {{site}} tags with values from variables,
 	# replace {{content}} tag with page content.
 	# use truthy tag to show title only when it's found in content, for example:
 	# {{#title}}{{title}: {{/title}}
-	export content site title && mustache <"$1"
+	export content title site && mustache <"$1"
 }
 
 # return html converted from markdown
@@ -388,7 +386,6 @@ generate_sitemap() {
 	fi
 	# generate sitemap.xml for all pages in dst
 	{
-		site=$(basename "$SRC")
 		echo '<?xml version="1.0" encoding="UTF-8"?>
 <urlset
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -399,7 +396,7 @@ generate_sitemap() {
 			s,^$,,
 			s,^'"$DST"',,
 			s,index.html$,,
-			s,^(.*)$,	<url><loc>https://'"$site"'/\1</loc></url>,'
+			s,^(.*)$,	<url><loc>https://'"$SITE"'/\1</loc></url>,'
 		echo '</urlset>'
 	} >"$DST/$SSG_SITEMAP_XML"
 	info "sitemap   $SSG_SITEMAP_XML"
@@ -408,7 +405,7 @@ generate_sitemap() {
 	if test -f "$SRC/$SSG_ROBOTS_TXT"; then return; fi
 	# generate robots.txt in dst
 	echo 'user-agent: *
-sitemap: https://'"$site"'/sitemap.xml' >"$DST/$SSG_ROBOTS_TXT"
+sitemap: https://'"$SITE"'/sitemap.xml' >"$DST/$SSG_ROBOTS_TXT"
 	info "sitemap   $SSG_ROBOTS_TXT"
 }
 
@@ -442,6 +439,7 @@ main() {
 
 	SRC=$(cd "$1" && pwd)
 	DST="$2"
+	SITE="$(basename "$SRC")"
 	SSG_IGNORE='.ssg.ignore'
 	SSG_TEMPLATE='.ssg.template'
 	SSG_SRC='.ssg.src'

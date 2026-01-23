@@ -1,7 +1,7 @@
 #!/bin/ksh -e
 
 ok_count=0
-ok_expected=27
+ok_expected=28
 
 plan() {
 	echo "$ok_expected..$ok_count"
@@ -420,6 +420,20 @@ sitemap   sitemap.xml
 		cat "$dst/robots.txt" | not_ok_diff "$1" ''
 		;;
 
+	generate_html_with_template_title)
+		mkdir "$src" "$dst"
+		echo '<h1>'\''&rarr;
+</h1>' >"$src/h.html"
+		echo '<title>{{title}}</title>' >"$src/.ssg.template"
+
+		"$cmd" "$src" "$dst" 2>/dev/null
+		hexdump -C "$dst/h.html" | not_ok_diff_n "$1: h.html" '
+00000000  3c 74 69 74 6c 65 3e 27  26 72 61 72 72 3b 20 3c  |<title>'\''&rarr; <|
+00000010  2f 74 69 74 6c 65 3e 0a                           |/title>.|
+00000018
+'
+		;;
+
 	generate_html_with_template)
 		mkdir "$src" "$dst"
 		echo '<h1>h1</h1>' >"$src/h.html"
@@ -719,6 +733,7 @@ t generate_copy
 t generate_file
 t generate_html
 t generate_html_with_template
+t generate_html_with_template_title
 t generate_html_with_template_no_title
 t generate_html_with_template_in_dir
 t generate_html_template_not_found
