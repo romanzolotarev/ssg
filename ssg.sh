@@ -15,7 +15,7 @@
 # other tortious action, arising out of or in connection with the use or
 # performance of this software.
 
-info() { echo "$@" >&2; }
+info() { echo "$@" >&3; }
 fail() { echo "$@" >&2 && exit 1; }
 usage() { fail "usage: ${0##*/} <src> <dst>"; }
 
@@ -431,7 +431,7 @@ generate() {
 write_hashes() {
 	if ! test -d "$DST"; then return; fi
 	echo "$1" >"$DST/$SSG_SRC"
-	echo "$2" | tee "$DST/$SSG_DST" | sha256 >&2
+	echo "$2" | tee "$DST/$SSG_DST" | sha256
 }
 
 main() {
@@ -453,4 +453,4 @@ main() {
 	write_hashes "$src_hash" "$(hash_dst)"
 }
 
-main "${@}"
+main "${@}" 3>&1
