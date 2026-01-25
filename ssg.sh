@@ -356,12 +356,12 @@ diff_src() { diff_lines "$(cat "$DST/$SSG_SRC")" "$1"; }
 
 # return files to be updated
 select_src_files() {
+	if ! is_dir "$DST"; then mkdir_select_all "$1" && return; fi
 	dst_hash=$(hash_dst)
 	if is_empty "$1"; then
 		clean_up_dst "$src_hash" "$dst_hash"
 		return
 	fi
-	if ! is_dir "$DST"; then mkdir_select_all "$1" && return; fi
 	if ! is_ssg_src || ! is_ssg_dst; then rmdir_select_all "$1" && return; fi
 	if ! is_matching_ssg_dst "$dst_hash"; then rmdir_select_all "$1" && return; fi
 	src_hash_diff=$(diff_src "$1")
@@ -439,7 +439,7 @@ main() {
 	fail_no_src "${@}"
 
 	SRC=$(cd "$1" && pwd)
-	DST="$2"
+	DST="$(dirname "$2")/$(basename "$2")"
 	SITE="$(basename "$SRC")"
 	SSG_IGNORE='.ssg.ignore'
 	SSG_TEMPLATE='.ssg.template'

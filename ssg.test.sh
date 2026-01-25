@@ -143,6 +143,22 @@ ignore    a/b/.ssg.ignore
 '
 		;;
 
+	select_src_files_trailing_slash)
+		mkdir "$src" && echo >"$src/t.png"
+		"$cmd" "$src"/ "$dst"/ 2>&1 | not_ok_diff_n "$1" '
+copy      t.png
+9db7b136bc6fdd9c51009ce2f88c69ff64060c3f3ff540a9199f37d2aa404eaa
+'
+		not_ok_find "$dst" "$1: dst has t.png" '
+.ssg.dst
+.ssg.src
+t.png
+'
+ cat "$dst/.ssg.dst" | not_ok_diff_n "$1: .ssg.dst" '
+01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b t.png
+'
+		;;
+
 	select_src_files_no_dst)
 		mkdir "$src" && echo >"$src/t.png"
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1" '
@@ -719,6 +735,7 @@ t fail_no_args
 t fail_no_src
 t select_src_files_empty_src
 t select_src_files_ssg_ignore
+t select_src_files_trailing_slash
 t select_src_files_no_dst
 t select_src_files_no_ssg_dst_ssg_src
 t select_src_files_no_dst_ssg_dst_match
