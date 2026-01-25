@@ -107,7 +107,8 @@ mustache() {
 render_page() {
 	# replace newlines with spaces and extract title from the first <h1> tag
 	get_title() { tr '\n' ' ' |
-		sed -n 's/^[^<]*<[Hh]1[^>]*>\([^<]*\)<\/[Hh]1[^>]*>.*/\1/p'; }
+		sed -n 's/.*<[Hh]1[^>]*>\(.*\)<\/[Hh]1[^>]*>.*/\1/p' |
+		sed 's/<[^>]*>//g'; }
 	content="$(cat)"
 	# use src directory name as site name
 	title="$(printf '%s' "$content" | get_title | tr -d '\n')"

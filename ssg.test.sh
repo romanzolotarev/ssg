@@ -422,21 +422,18 @@ sitemap   sitemap.xml
 
 	generate_html_with_template_title)
 		mkdir "$src" "$dst"
-		echo '<h1>'\''&rarr;
-</h1>' >"$src/h.html"
+		echo '<h>b<h1 id="h1" >'\''&rarr;<a href=""></a>
+nl</h1>a
+<p>a</p></h>' >"$src/h.html"
 		echo '<title>{{title}}</title>' >"$src/.ssg.template"
 
 		"$cmd" "$src" "$dst" 2>/dev/null
-		hexdump -C "$dst/h.html" | not_ok_diff_n "$1: h.html" '
-00000000  3c 74 69 74 6c 65 3e 27  26 72 61 72 72 3b 20 3c  |<title>'\''&rarr; <|
-00000010  2f 74 69 74 6c 65 3e 0a                           |/title>.|
-00000018
-'
+		cat "$dst/h.html" | not_ok_diff "$1: h.html" "<title>'&rarr; nl</title>"
 		;;
 
 	generate_html_with_template)
 		mkdir "$src" "$dst"
-		echo '<h1>h1</h1>' >"$src/h.html"
+		echo '<h1>x</h1>' >"$src/h.html"
 		echo '<title>{{title}}~{{site}}</title>{{content}}' >"$src/.ssg.template"
 
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: first run" '
@@ -445,10 +442,10 @@ html      h.html, .ssg.template > h.html
 html      h.html, .ssg.template > h.html.gz
 sitemap   sitemap.xml
 sitemap   robots.txt
-41ea28f2ec31b10d054cd52d4f5586974b37f2028b3841fa8bd4f1821d17d1fe
+5843646b566cdf923e8cb8745d6e516dc1d764e4af5894a823d6aef45b61f70e
 '
 		"$cmd" "$src" "$dst" 2>&1 | not_ok_diff_n "$1: second run" '
-41ea28f2ec31b10d054cd52d4f5586974b37f2028b3841fa8bd4f1821d17d1fe
+5843646b566cdf923e8cb8745d6e516dc1d764e4af5894a823d6aef45b61f70e
 '
 		not_ok_find "$dst" "$1" '
 .ssg.dst
@@ -459,12 +456,12 @@ robots.txt
 sitemap.xml
 '
 
-		cat "$dst/h.html" | not_ok_diff "$1" '<title>h1~src</title><h1>h1</h1>'
+		cat "$dst/h.html" | not_ok_diff "$1" '<title>x~src</title><h1>x</h1>'
 		hexdump -C "$dst/h.html.gz" | not_ok_diff_n "$1" '
 00000000  1f 8b 08 00 00 00 00 00  02 03 b3 29 c9 2c c9 49  |...........).,.I|
-00000010  b5 cb 30 ac 2b 2e 4a b6  d1 87 f0 6c 32 0c 81 22  |..0.+.J....l2.."|
-00000020  36 fa 40 8a 0b 00 1e b5  6d 4c 21 00 00 00        |6.@.....mL!...|
-0000002e
+00000010  b5 ab a8 2b 2e 4a b6 d1  87 70 6c 32 0c ed 2a 6c  |...+.J...pl2..*l|
+00000020  f4 81 24 17 00 14 10 05  9e 1f 00 00 00           |..$..........|
+0000002d
 '
 		;;
 
