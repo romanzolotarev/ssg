@@ -318,7 +318,7 @@ prepend_kind() {
 		*.ssg.ignore) k='ignore' ;;
 		*.ssg.*.sh | *.ssg.sh) k='sh' ;;
 		*.ssg.template) k='template' ;;
-		*.css | *.js | *.json | *.sh | *.svg | *.txt | *.xml) k='copy_gz' ;;
+		*.asc | *.css | *.js | *.json | *.sh | *.svg | *.txt | *.xml) k='copy_gz' ;;
 		*) k='copy' ;;
 		esac
 		echo "$k $f"
