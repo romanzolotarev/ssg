@@ -153,12 +153,12 @@ files_in() {
 }
 
 # write and zip file to dst
-generate_file() {
+generate_copy_gz() {
 	mkdir -p "$(dirname "$DST/$1")"
 	cp "$SRC/$1" "$DST/$1"
-	info "file      $1"
+	info "copy gz   $1"
 	gz "$1"
-	info "file      $1 > $1.gz"
+	info "copy gz   $1 > $1.gz"
 }
 
 # write file to dst
@@ -265,9 +265,11 @@ plan_sitemap() {
 	# if sitemap.xml found in src do nothing
 	if test -f "$SRC/$SSG_SITEMAP_XML"; then return; fi
 	echo "$SSG_SITEMAP_XML"
+	echo "$SSG_SITEMAP_XML.gz"
 	# if robots.txt found in src do nothing
 	if test -f "$SRC/$SSG_ROBOTS_TXT"; then return; fi
 	echo "$SSG_ROBOTS_TXT"
+	echo "$SSG_ROBOTS_TXT.gz"
 }
 
 # return file expected in dst directory
@@ -275,7 +277,7 @@ plan() {
 	while read -r k f; do
 		case "$k" in
 		copy) echo "$f" ;;
-		file) echo "$f" && echo "$f.gz" ;;
+		copy_gz) echo "$f" && echo "$f.gz" ;;
 		html) echo "$f" && echo "$f.gz" ;;
 		md) echo "${f%.md}.html" && echo "${f%.md}.html.gz" ;;
 		sh) command ksh -- "$SRC/$f" |
@@ -316,8 +318,8 @@ prepend_kind() {
 		*.ssg.ignore) k='ignore' ;;
 		*.ssg.*.sh | *.ssg.sh) k='sh' ;;
 		*.ssg.template) k='template' ;;
-		*.png | *.jpg | *.gif | *.mp4 | *.zip | *.gz) k='copy' ;;
-		*) k='file' ;;
+		*.css | *.js | *.json | *.sh | *.svg | *.txt | *.xml) k='copy_gz' ;;
+		*) k='copy' ;;
 		esac
 		echo "$k $f"
 	done
@@ -401,6 +403,8 @@ generate_sitemap() {
 		echo '</urlset>'
 	} >"$DST/$SSG_SITEMAP_XML"
 	info "sitemap   $SSG_SITEMAP_XML"
+	gz "$SSG_SITEMAP_XML"
+	info "sitemap   $SSG_SITEMAP_XML.gz"
 
 	# if robots.txt found in src do nothing
 	if test -f "$SRC/$SSG_ROBOTS_TXT"; then return; fi
@@ -408,6 +412,8 @@ generate_sitemap() {
 	echo 'user-agent: *
 sitemap: https://'"$SITE"'/sitemap.xml' >"$DST/$SSG_ROBOTS_TXT"
 	info "sitemap   $SSG_ROBOTS_TXT"
+	gz "$SSG_ROBOTS_TXT"
+	info "sitemap   $SSG_ROBOTS_TXT.gz"
 }
 
 # write files in dst directory
@@ -415,7 +421,7 @@ generate() {
 	while read -r k f; do
 		case "$k" in
 		copy) generate_copy "$f" ;;
-		file) generate_file "$f" ;;
+		copy_gz) generate_copy_gz "$f" ;;
 		html) generate_html "$f" ;;
 		md) generate_md "$f" ;;
 		sh) generate_sh "$f" ;;

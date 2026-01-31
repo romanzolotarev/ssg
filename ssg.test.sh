@@ -79,13 +79,15 @@ html      html1.html, .ssg.template > html1.html.gz
 html      html2.html
 html      html2.html > html2.html.gz
 copy      logo.png
-file      main.css
-file      main.css > main.css.gz
+copy gz   main.css
+copy gz   main.css > main.css.gz
 md        markdown.md, .ssg.template > markdown.html
 md        markdown.md, .ssg.template > markdown.html.gz
 sitemap   sitemap.xml
+sitemap   sitemap.xml.gz
 sitemap   robots.txt
-de31b4842cafa9761c3bb57c9d60b7651e93f9606dbb5a40f760caefda2f34ea
+sitemap   robots.txt.gz
+e601a42390b8c734a818abc9b7406ea6a52a12c912a37b7464eb17df27d6d0e0
 '
 	rm -rf "$dir"
 }
@@ -272,8 +274,10 @@ md        markdown.md, .ssg.template > markdown.html
 md        markdown.md, .ssg.template > markdown.html.gz
 copy      t.png
 sitemap   sitemap.xml
+sitemap   sitemap.xml.gz
 sitemap   robots.txt
-e58355d68978971708283c3099a1f15c2f4514964e1456af3a2c554db93af090
+sitemap   robots.txt.gz
+b11930bb5dc6fe0f6e863ec12cfb80a4ee46a292f7021e8619967a0514dc98f9
 '
 
 		expected_dst='
@@ -286,7 +290,9 @@ html2.html.gz
 markdown.html
 markdown.html.gz
 robots.txt
+robots.txt.gz
 sitemap.xml
+sitemap.xml.gz
 t.png
 '
 		t_find "$dst" "$1" "$expected_dst"
@@ -298,7 +304,7 @@ html      html1.html, .ssg.template > html1.html
 html      html1.html, .ssg.template > html1.html.gz
 md        markdown.md, .ssg.template > markdown.html
 md        markdown.md, .ssg.template > markdown.html.gz
-cc2f8fab08e743666d490c9379e8580981115d95c3b6492893a46b5cd30f5f3a
+094260284ae96faf91d950a6c1121fb9940e909c14e34710517b63e01d57a6f9
 '
 		t_find "$dst" "$1" "$expected_dst"
 		;;
@@ -320,19 +326,23 @@ t.png
 		cat "$dst/t.png" | t_match "$1" 'png'
 		;;
 
-	generate_file)
-		mkdir "$src" "$dst" && echo 'txt' >"$src/t.txt"
+	generate_copy_gz)
+		mkdir "$src" "$dst"
+		echo 'txt' >"$src/t.txt"
+		echo 'pdf' >"$src/p.pdf"
 		"$cmd" "$src" "$dst" | t_match_n "$1: first run" '
-file      t.txt
-file      t.txt > t.txt.gz
-482d02d3fdd5ca854ffc9370f9cf3d4efa5bb640713c90dcf5c9800d5acf6812
+copy      p.pdf
+copy gz   t.txt
+copy gz   t.txt > t.txt.gz
+2a962ce37f2d10996c3a66c9c1bd2e687a796f255b90b062de8ec813d987b12b
 '
 		"$cmd" "$src" "$dst" | t_match_n "$1: second run" '
-482d02d3fdd5ca854ffc9370f9cf3d4efa5bb640713c90dcf5c9800d5acf6812
+2a962ce37f2d10996c3a66c9c1bd2e687a796f255b90b062de8ec813d987b12b
 '
 		t_find "$dst" "$1" '
 .ssg.dst
 .ssg.src
+p.pdf
 t.txt
 t.txt.gz
 '
@@ -350,11 +360,13 @@ t.txt.gz
 html      h.html
 html      h.html > h.html.gz
 sitemap   sitemap.xml
+sitemap   sitemap.xml.gz
 sitemap   robots.txt
-c31554e49bd5671f634ec9392a21ded395383d00bf224088767fd2fc64a42486
+sitemap   robots.txt.gz
+8612441a4737f34fcdcc133846c3b98c48f030ce640953f6219b4ca34a378b3f
 '
 		"$cmd" "$src" "$dst" | t_match_n "$1: second run" '
-c31554e49bd5671f634ec9392a21ded395383d00bf224088767fd2fc64a42486
+8612441a4737f34fcdcc133846c3b98c48f030ce640953f6219b4ca34a378b3f
 '
 		t_find "$dst" "$1" '
 .ssg.dst
@@ -362,7 +374,9 @@ c31554e49bd5671f634ec9392a21ded395383d00bf224088767fd2fc64a42486
 h.html
 h.html.gz
 robots.txt
+robots.txt.gz
 sitemap.xml
+sitemap.xml.gz
 '
 		cat "$dst/h.html" | t_match "$1" '<html>'
 		hexdump -C "$dst/h.html.gz" | t_match_n "$1" '
@@ -378,8 +392,10 @@ sitemap.xml
 html      h.html
 html      h.html > h.html.gz
 sitemap   sitemap.xml
+sitemap   sitemap.xml.gz
 sitemap   robots.txt
-c31554e49bd5671f634ec9392a21ded395383d00bf224088767fd2fc64a42486
+sitemap   robots.txt.gz
+8612441a4737f34fcdcc133846c3b98c48f030ce640953f6219b4ca34a378b3f
 '
 		cat "$dst/sitemap.xml" | t_match_n "$1" '
 <?xml version="1.0" encoding="UTF-8"?>
@@ -397,7 +413,9 @@ c31554e49bd5671f634ec9392a21ded395383d00bf224088767fd2fc64a42486
 rm        h.html
 rm        h.html.gz
 rm        robots.txt
+rm        robots.txt.gz
 rm        sitemap.xml
+rm        sitemap.xml.gz
 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
 '
 
@@ -414,8 +432,8 @@ rm        sitemap.xml
 		"$cmd" "$src" "$dst" | t_match_n "$1: first run" '
 html      h.html
 html      h.html > h.html.gz
-file      sitemap.xml
-file      sitemap.xml > sitemap.xml.gz
+copy gz   sitemap.xml
+copy gz   sitemap.xml > sitemap.xml.gz
 8ff598b31385c53268c54ff343e33ff60bbf0605d5efcd4f7c5f84a395eaaaa4
 '
 		cat "$dst/sitemap.xml" | t_match "$1" ''
@@ -428,10 +446,11 @@ file      sitemap.xml > sitemap.xml.gz
 		"$cmd" "$src" "$dst" | t_match_n "$1: first run" '
 html      h.html
 html      h.html > h.html.gz
-file      robots.txt
-file      robots.txt > robots.txt.gz
+copy gz   robots.txt
+copy gz   robots.txt > robots.txt.gz
 sitemap   sitemap.xml
-380bbf740dad47d4036e88e89a07b7a1d1f94657ca5bcf9e5f10f1feddd8c799
+sitemap   sitemap.xml.gz
+8708dbc61a4641eaec9e0279774ea7a449ac4e00502fbfd388b29b75a2d0b42f
 '
 		cat "$dst/robots.txt" | t_match "$1" ''
 		;;
@@ -457,11 +476,13 @@ template  .ssg.template
 html      h.html, .ssg.template > h.html
 html      h.html, .ssg.template > h.html.gz
 sitemap   sitemap.xml
+sitemap   sitemap.xml.gz
 sitemap   robots.txt
-5843646b566cdf923e8cb8745d6e516dc1d764e4af5894a823d6aef45b61f70e
+sitemap   robots.txt.gz
+65db88eacf905753ae5fdc810a53d358eed5bb03fada03ede6da8b19830a35e9
 '
 		"$cmd" "$src" "$dst" | t_match_n "$1: second run" '
-5843646b566cdf923e8cb8745d6e516dc1d764e4af5894a823d6aef45b61f70e
+65db88eacf905753ae5fdc810a53d358eed5bb03fada03ede6da8b19830a35e9
 '
 		t_find "$dst" "$1" '
 .ssg.dst
@@ -469,7 +490,9 @@ sitemap   robots.txt
 h.html
 h.html.gz
 robots.txt
+robots.txt.gz
 sitemap.xml
+sitemap.xml.gz
 '
 
 		cat "$dst/h.html" | t_match "$1" '<title>x~src</title><h1>x</h1>'
@@ -494,8 +517,10 @@ html      h.html, .ssg.template > h.html.gz
 html      p.html, .ssg.template > p.html
 html      p.html, .ssg.template > p.html.gz
 sitemap   sitemap.xml
+sitemap   sitemap.xml.gz
 sitemap   robots.txt
-452338ffd109bbe64021f7722cce4beb854494f37298edd08da1b0e484d0e7dd
+sitemap   robots.txt.gz
+8b493eed8f65cb60f9b9ebfe2b2414cb646078b3281759a0725246139b2f74da
 '
 		t_find "$dst" "$1" '
 .ssg.dst
@@ -505,7 +530,9 @@ h.html.gz
 p.html
 p.html.gz
 robots.txt
+robots.txt.gz
 sitemap.xml
+sitemap.xml.gz
 '
 
 		cat "$dst/h.html" | t_match "$1" '<title>h1: src</title><h1>h1</h1>'
@@ -527,11 +554,13 @@ html      dir/h2.html, dir/.ssg.template > dir/h2.html.gz
 html      h1.html, .ssg.template > h1.html
 html      h1.html, .ssg.template > h1.html.gz
 sitemap   sitemap.xml
+sitemap   sitemap.xml.gz
 sitemap   robots.txt
-51147e86d5a634da68279934469c49305735a5a0516b0b6327fb00df86795832
+sitemap   robots.txt.gz
+febf860d03f4581be373e01ca5bfd8d06796170480602d7189b995f17eab45b3
 '
 		"$cmd" "$src" "$dst" | t_match_n "$1: second run" '
-51147e86d5a634da68279934469c49305735a5a0516b0b6327fb00df86795832
+febf860d03f4581be373e01ca5bfd8d06796170480602d7189b995f17eab45b3
 '
 		t_find "$dst" "$1" '
 .ssg.dst
@@ -541,7 +570,9 @@ dir/h2.html.gz
 h1.html
 h1.html.gz
 robots.txt
+robots.txt.gz
 sitemap.xml
+sitemap.xml.gz
 '
 
 		cat "$dst/h1.html" | t_match "$1" '/'
@@ -556,11 +587,13 @@ sitemap.xml
 html      h.html
 html      h.html > h.html.gz
 sitemap   sitemap.xml
+sitemap   sitemap.xml.gz
 sitemap   robots.txt
-52494b82f46c80147bde275b53bf7318998d6986eaf6e503d7fe3dadfdf67d19
+sitemap   robots.txt.gz
+b3a4594de39ed2763ffe81abff08c1e39344a38135a19d79919fea4ffd4a4ce9
 '
 		"$cmd" "$src" "$dst" | t_match_n "$1: second run" '
-52494b82f46c80147bde275b53bf7318998d6986eaf6e503d7fe3dadfdf67d19
+b3a4594de39ed2763ffe81abff08c1e39344a38135a19d79919fea4ffd4a4ce9
 '
 		t_find "$dst" "$1" '
 .ssg.dst
@@ -568,7 +601,9 @@ sitemap   robots.txt
 h.html
 h.html.gz
 robots.txt
+robots.txt.gz
 sitemap.xml
+sitemap.xml.gz
 '
 
 		cat "$dst/h.html" | t_match "$1" '<h1>h1</h1>'
@@ -601,11 +636,13 @@ template  .ssg.template
 md        h.md, .ssg.template > h.html
 md        h.md, .ssg.template > h.html.gz
 sitemap   sitemap.xml
+sitemap   sitemap.xml.gz
 sitemap   robots.txt
-ea62f877148817dcb0bf8b1d76e691880cd58961f239f9e2e25f282c79da26e6
+sitemap   robots.txt.gz
+488486c68f55da2c1c922455bae85e5413d17892f74f1d98f798b9709720bbc1
 '
 		"$cmd" "$src" "$dst" | t_match_n "$1: second run" '
-ea62f877148817dcb0bf8b1d76e691880cd58961f239f9e2e25f282c79da26e6
+488486c68f55da2c1c922455bae85e5413d17892f74f1d98f798b9709720bbc1
 '
 		t_find "$dst" "$1" '
 .ssg.dst
@@ -613,7 +650,9 @@ ea62f877148817dcb0bf8b1d76e691880cd58961f239f9e2e25f282c79da26e6
 h.html
 h.html.gz
 robots.txt
+robots.txt.gz
 sitemap.xml
+sitemap.xml.gz
 '
 
 		cat "$dst/h.html" |
@@ -635,11 +674,13 @@ sitemap.xml
 md        h.md > h.html
 md        h.md > h.html.gz
 sitemap   sitemap.xml
+sitemap   sitemap.xml.gz
 sitemap   robots.txt
-541864f1b492230aa29853b08cf13533054817db9b19bc75ebd47201e04bd470
+sitemap   robots.txt.gz
+6600b89bcccccecb0778b428cd94d0fd544898f64030dab95181e3a173f71d94
 '
 		"$cmd" "$src" "$dst" | t_match_n "$1: second run" '
-541864f1b492230aa29853b08cf13533054817db9b19bc75ebd47201e04bd470
+6600b89bcccccecb0778b428cd94d0fd544898f64030dab95181e3a173f71d94
 '
 		t_find "$dst" "$1" '
 .ssg.dst
@@ -647,7 +688,9 @@ sitemap   robots.txt
 h.html
 h.html.gz
 robots.txt
+robots.txt.gz
 sitemap.xml
+sitemap.xml.gz
 '
 
 		cat "$dst/h.html" | t_match "$1" '<h1 id="h1">h1</h1>'
@@ -709,8 +752,8 @@ fail: .ssg.sh collides with x.txt
 		echo >"$src/x.txt"
 		# shellcheck disable=2016
 		"$cmd" "$src" "$dst" | t_match_n "$1: first run" '
-file      x.txt
-file      x.txt > x.txt.gz
+copy gz   x.txt
+copy gz   x.txt > x.txt.gz
 a12d7b67f235edb37cfcf1bdd5a50a2e0486e1612eda28210b816eaff424a100
 '
 		cat "$dst/.ssg.src" | t_match_n "$1" '
@@ -744,7 +787,7 @@ t select_src_files_clean_dst
 t select_src_files_clean_dst_dir
 t select_updated
 t generate_copy
-t generate_file
+t generate_copy_gz
 t generate_html
 t generate_html_with_template
 t generate_html_with_template_title
