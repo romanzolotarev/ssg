@@ -280,7 +280,7 @@ plan() {
 		copy_gz) echo "$f" && echo "$f.gz" ;;
 		html) echo "$f" && echo "$f.gz" ;;
 		md) echo "${f%.md}.html" && echo "${f%.md}.html.gz" ;;
-		sh) command ksh -- "$SRC/$f" |
+		sh) command ksh -- "$SRC/$f" "$SRC" |
 			while read -r f; do
 				if test -z "$f"; then continue; fi && echo "$f" && echo "$f.gz"
 			done ;;
